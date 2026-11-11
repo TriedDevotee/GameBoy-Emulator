@@ -28,9 +28,19 @@ private:
 
 	uint32_t cycles;
 
-	bool IME;
-	bool enableInterruptsPending;
-	uint8_t imeEnableDelay;
+	bool IME = false;
+	bool enableInterruptsPending = false;
+	uint8_t imeEnableDelay = 0;
+
+
+	enum class CPUState {
+		Running,
+		Halted,
+		Stopped
+	};
+
+	CPUState state = CPU::CPUState::Running;
+	bool haltBug = false;
 
 public:
 	bool running;

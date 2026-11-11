@@ -10,7 +10,7 @@ Emulator::Emulator() : cartridge(), memory(&cartridge), cpu(&memory){
 };
 
 void Emulator::run() {
-	cartridge.load("fullCPUstress6.gb");
+	cartridge.load("haltTest2.gb");
 
 
 	PPU ppu(&memory);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdint>
+#include <cstring>
 #include "Memory.h"
 #include "Cartridge.h"
 #include "interrupts.h"
@@ -7,9 +8,6 @@
 Memory::Memory(Cartridge* cartridge) {
 	std::cout << "Memory is Online\n";
 
-	for (int i = 0; i < 65536; i++) {
-		data[i] = 0;
-	}
 	this->cartridge = cartridge;
 	memset(data, 0, sizeof(data));
 }

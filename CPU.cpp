@@ -23,15 +23,22 @@ CPU::CPU(Memory* memory) {
 	PC = 0;
 	SP = 0xFFFE;
 
-	IME = false;
-	enableInterruptsPending = false;
-
 	running = true;
+
+	cycles = 0;
 }
 
 int CPU::step() {
 
 	uint8_t pending = getPendingInterrupts();
+
+	if (state == CPUState::Halted) {
+		if (pending == 0) {
+			return 4;
+		}
+
+		state = CPUState::Running;
+	}
 
 	if (IME && pending) {
 		return serviceInterrupt();
@@ -45,7 +52,13 @@ int CPU::step() {
 
 	uint16_t instructionAddress = PC;
 	uint8_t opcode = memory->read(PC);
-	PC++;
+
+	if (haltBug) {
+		haltBug = false;
+	}
+	else {
+		PC++;
+	}
 
 	std::cout << std::hex
 		<< "PC: " << instructionAddress
@@ -61,7 +74,7 @@ int CPU::step() {
 		}
 	}
 
-	return 67;
+	return 4;
 }
 
 void CPU::printState() {
@@ -184,9 +197,20 @@ void CPU::execute(uint8_t opcode) {
 			Add(A);
 			break;
 		case 0x76: //HALT
-			running = false;
-			std::cout << "Halt commanded\n";
+		{
+			std::cout << "HALT\n";
+
+			uint8_t pending = getPendingInterrupts();
+
+			if (!IME && pending != 0) {
+				haltBug = true;
+			} 
+			else {
+				state = CPUState::Halted;
+			}
+
 			break;
+		}
 		case 0xC3: //JP absolute
 			jump(true);
 			break;
@@ -1767,6 +1791,8 @@ int CPU::serviceInterrupt() {
 	for (int i = 0; i < 5; i++) {
 		if (pendingInterrupts & (1 << i)) {
 			IME = false;
+			imeEnableDelay = 0;
+			enableInterruptsPending = false;
 
 			uint8_t flags = memory->read(Interrupts::IF);
 			flags &= ~(1 << i);
@@ -1776,7 +1802,8 @@ int CPU::serviceInterrupt() {
 			PC = Interrupts::vectors[i];
 			
 			
-			return 67; //I havent got cycles running yet thats subsystem for tomorrow 
+			return 20; //I havent got cycles running yet thats subsystem for tomorrow
+					   //Its now tomorrow I have to make it do cycle shit :(
 		}
 	}
 
