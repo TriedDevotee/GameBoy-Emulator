@@ -50,3 +50,37 @@ Eventually, I'd like to get the emulator running Tetris. Then I can worry about 
 
 I used a lot of GPT-6 as a means of debugging my stack traces, due to me not wanting to do it <br>
 I also used the site https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html as a means of working out what needed implementing, and where
+
+## Building
+
+Quick warning - this is the first properly built project of mine, so its not clean building yet <br>
+That will come at a later date I promise
+
+# Requirements
+
+- Windows
+- Visual Studio with Desktop Development with C++ installed (I used VS 2026, not sure how much it matters)
+- MSVC v145 toolset
+- Windows 10 SDK
+- SDL2 dev libraries
+
+# Setup
+
+1. Clone my repository
+   ```GitHub repo
+   https://github.com/TriedDevotee/GameBoy-Emulator.git
+   ```
+2. Install SDL2 and put the dev libraries somewhere on your machine
+3. Open 'GameBoyEmulator.slnx' in Visual Studio
+4. Update the SDL2 paths in the project properties to match your SDL2 installation:
+
+C/C++ -> General -> Additional Include Directories: Point to the SDL2 include directory.
+
+Linker -> General -> Additional Library Directories: Point to the SDL2 lib/x64 directory.
+
+Linker -> Input -> Additional Dependencies: Ensure SDL2.lib is included.
+
+5. Select the debug configuration and x64
+6. Build with Ctrl + Shift + B
+
+The whole linker thing is what I need to sort, I do apologise :D
