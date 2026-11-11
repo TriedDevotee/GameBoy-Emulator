@@ -65,7 +65,7 @@ def check_a(asm, value, failure_label="fail"):
 
 asm = Assembler(origin=0x0000)
 
-asm.emit(
+"""asm.emit(
     0x31, 0x00, 0xD0  # LD SP,D000
 )
 
@@ -351,7 +351,34 @@ asm.emit(
     0x3E, 0xEE,       # LD A,EE
     0xEA, 0x00, 0xC0, # LD (C000),A
     0x76              # HALT
+)"""
+
+"""asm.emit(
+    0x3E, 0x42,       # LD A,42
+    0x06, 0x12,       # LD B,12
+    0x0E, 0x34,       # LD C,34
+    0x76              # HALT
+)"""
+
+asm.emit(
+    0xF3,             # DI
+    0x3E, 0x01,       # LD A,01
+    0xEA, 0xFF, 0xFF, # LD (FFFF),A
+    0xEA, 0x0F, 0xFF, # LD (FF0F),A
+    0x76,             # HALT
+    0x06, 0x00,       # LD B,00
+    0x0E, 0x99             # HALT
 )
+
+asm.emit(
+    0x3E, 0x00,       # LD A,00
+    0xEA, 0x0F, 0xFF  # LD (FF0F),A ; Clear IF
+)
+
+asm.emit(0x76)
+
+
+
 
 # ==========================================================
 # ASSEMBLE AND WRITE
@@ -359,11 +386,11 @@ asm.emit(
 
 program = asm.build()
 
-with open("fullCPUstress.gb", "wb") as f:
+with open("haltTest2.gb", "wb") as f:
     f.write(program)
 
 print(f"Generated {len(program)} bytes")
 print(f"Origin: 0x{asm.origin:04X}")
-print(f"Success handler: 0x{asm.labels['pass']:04X}")
-print(f"Failure handler: 0x{asm.labels['fail']:04X}")
-print(f"Test function: 0x{asm.labels['test_function']:04X}")
+#print(f"Success handler: 0x{asm.labels['pass']:04X}")
+#print(f"Failure handler: 0x{asm.labels['fail']:04X}")
+#print(f"Test function: 0x{asm.labels['test_function']:04X}")
