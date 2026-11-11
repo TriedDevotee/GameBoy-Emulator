@@ -1,0 +1,42 @@
+
+# Visual Studio user-specific files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+out/
+
+# Compiled binaries and intermediate files
+*.exe
+*.dll
+*.obj
+*.o
+*.pdb
+*.ilk
+*.lib
+*.exp
+
+# CMake build directories
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+build/
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# VS Code workspace settings
+.vscode/

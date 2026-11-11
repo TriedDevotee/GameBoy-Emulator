@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="GameBoyEmulator.vcxproj" Id="6f7e575f-f235-4b97-bd71-212c0a3d77db" />
+</Solution>
