@@ -60,9 +60,9 @@ int CPU::step() {
 		PC++;
 	}
 
-	std::cout << std::hex
-		<< "PC: " << instructionAddress
-		<< " | Opcode: " << (int)opcode << '\n';
+	//std::cout << std::hex
+		//<< "PC: " << instructionAddress
+		//<< " | Opcode: " << (int)opcode << '\n';
 
 	cycles = execute(opcode);
 
