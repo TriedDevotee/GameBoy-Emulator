@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -143,6 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Cartridge.cpp" />
+    <ClCompile Include="timer.cpp" />
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="Emulator.cpp" />
     <ClCompile Include="GPU.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="Memory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="timer.h" />
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Emulator.h" />
     <ClInclude Include="GPU.h" />

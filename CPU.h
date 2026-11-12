@@ -7,7 +7,7 @@
 class CPU {
 private:
 
-	void execute(uint8_t opcode);
+	int execute(uint8_t opcode);
 
 	Memory* memory;
 
@@ -93,7 +93,7 @@ public:
 	void AddBig(uint16_t value);
 	void SubBig(uint16_t value);
 
-	void executeCB(uint8_t opcode);
+	int executeCB(uint8_t opcode);
 	uint8_t& getRegisterCB(uint8_t index);
 	void RLC(uint8_t& reg);
 	void RRC(uint8_t& reg);

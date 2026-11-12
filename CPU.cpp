@@ -64,7 +64,7 @@ int CPU::step() {
 		<< "PC: " << instructionAddress
 		<< " | Opcode: " << (int)opcode << '\n';
 
-	execute(opcode);
+	cycles = execute(opcode);
 
 
 	if (imeEnableDelay > 0) {
@@ -74,7 +74,7 @@ int CPU::step() {
 		}
 	}
 
-	return 4;
+	return cycles;
 }
 
 void CPU::printState() {
@@ -94,108 +94,108 @@ void CPU::printState() {
 	std::cout << "SP: " << (int)SP << "\n\n";
 }
 
-void CPU::execute(uint8_t opcode) {
+int CPU::execute(uint8_t opcode) {
 	switch (opcode) {
 		case 0x00: //NOP
-			break;
+			return 4;
 		case 0x10: //STOP
 			PC++;
-			break;
+			return 4;
 		case 0x06:
 			Load(B);
-			break;
+			return 8;
 		case 0x0E:
 			Load(C);
-			break;
+			return 8;
 		case 0x16:
 			Load(D);
-			break;
+			return 8;
 		case 0x1E:
 			Load(E);
-			break;
+			return 8;
 		case 0x26:
 			Load(H);
-			break;
+			return 8;
 		case 0x2E:
 			Load(L);
-			break;
+			return 8;
 		case 0x3E: //LD A, d8
 			Load(A);
-			break;
+			return 8;
 		case 0x04:
 			Inc(B);
-			break;
+			return 4;
 		case 0x0C:
 			Inc(C);
-			break;
+			return 4;
 		case 0x14:
 			Inc(D);
-			break;
+			return 4;
 		case 0x1C:
 			Inc(E);
-			break;
+			return 4;
 		case 0x24:
 			Inc(H);
-			break;
+			return 4;
 		case 0x2C:
 			Inc(L);
-			break;
+			return 4;
 		case 0x3C: //INC A
 			Inc(A);
-			break;
+			return 4;
 		case 0x05:
 			Dec(B);
-			break;
+			return 4;
 		case 0x0D:
 			Dec(C);
-			break;
+			return 4;
 		case 0x15:
 			Dec(D);
-			break;
+			return 4;
 		case 0x1D:
 			Dec(E);
-			break;
+			return 4;
 		case 0x25:
 			Dec(H);
-			break;
+			return 4;
 		case 0x2D:
 			Dec(L);
-			break;
+			return 4;
 		case 0x3D:
 			Dec(A);
-			break;
+			return 4;
 		case 0xC6: //ADD A, val
 		{
 			uint8_t value = memory->read(PC);
 			PC++;
 
 			Add(value);
-			break;
+			return 8;
 		}
 		case 0x80:
 			Add(B);
-			break;
+			return 4;
 		case 0x81:
 			Add(C);
-			break;
+			return 4;
 		case 0x82:
 			Add(D);
-			break;
+			return 4;
 		case 0x83:
 			Add(E);
-			break;
+			return 4;
 		case 0x84:
 			Add(H);
-			break;
+			return 4;
 		case 0x85:
 			Add(L);
-			break;
+			return 4;
 		case 0x86:
 			Add(memory->read(getHL()));
-			break;
+			return 8;
 		case 0x87:
 			Add(A);
-			break;
+			return 4;
 		case 0x76: //HALT
 		{
 			std::cout << "HALT\n";
@@ -209,219 +209,221 @@ void CPU::execute(uint8_t opcode) {
 				state = CPUState::Halted;
 			}
 
-			break;
+			return 4;
 		}
 		case 0xC3: //JP absolute
 			jump(true);
-			break;
+			return 16;
 		case 0xC2: //JP Not Equal
 			jump(!getZeroFlag());
-			break;
+			if (!getZeroFlag()) return 16;
+			else return 12;
 		case 0xCA: //JP Equal
 			jump(getZeroFlag());
-			break;
+			if (getZeroFlag()) return 16;
+			else return 12;
 		case 0xFE: //CP A, val
 		{
 			uint8_t value = memory->read(PC);
 			PC++;
 			compare(value);
-			break;
+			return 8;
 		}
 		case 0xCD: //CALL val
 			call();
-			break;
+			return 24;
 		case 0xC9: //RET val
 			ret();
-			break;
+			return 16;
 		case 0x40:
 			B = B;
-			break;
+			return 4;
 		case 0x41:
 			B = C;
-			break;
+			return 4;
 		case 0x42:
 			B = D;
-			break;
+			return 4;
 		case 0x43:
 			B = E;
-			break;
+			return 4;
 		case 0x44:
 			B = H;
-			break;
+			return 4;
 		case 0x45:
 			B = L;
-			break;
+			return 4;
 		case 0x46:
 			B = memory->read(getHL());
-			break;
+			return 8;
 		case 0x47:
 			B = A;
-			break;
+			return 4;
 		case 0x48:
 			C = B;
-			break;
+			return 4;
 		case 0x49:
 			C = C;
-			break;
+			return 4;
 		case 0x4A:
 			C = D;
-			break;
+			return 4;
 		case 0x4B:
 			C = E;
-			break;
+			return 4;
 		case 0x4C:
 			C = H;
-			break;
+			return 4;
 		case 0x4D:
 			C = L;
-			break;
+			return 4;
 		case 0x4E:
 			C = memory->read(getHL());
-			break;
+			return 8;
 		case 0x4F:
 			C = A;
-			break;
+			return 4;
 		case 0x50:
 			D = B;
-			break;
+			return 4;
 		case 0x51:
 			D = C;
-			break;
+			return 4;
 		case 0x52:
 			D = D;
-			break;
+			return 4;
 		case 0x53:
 			D = E;
-			break;
+			return 4;
 		case 0x54:
 			D = H;
-			break;
+			return 4;
 		case 0x55:
 			D = L;
-			break;
+			return 4;
 		case 0x56:
 			D = memory->read(getHL());
-			break;
+			return 8;
 		case 0x57:
 			D = A;
-			break;
+			return 4;
 		case 0x58:
 			E = B;
-			break;
+			return 4;
 		case 0x59:
 			E = C;
-			break;
+			return 4;
 		case 0x5A:
 			E = D;
-			break;
+			return 4;
 		case 0x5B:
 			E = E;
-			break;
+			return 4;
 		case 0x5C:
 			E = H;
-			break;
+			return 4;
 		case 0x5D:
 			E = L;
-			break;
+			return 4;
 		case 0x5E:
 			E = memory->read(getHL());
-			break;
+			return 8;
 		case 0x5F:
 			E = A;
-			break;
+			return 4;
 		case 0x60:
 			H = B;
-			break;
+			return 4;
 		case 0x61:
 			H = C;
-			break;
+			return 4;
 		case 0x62:
 			H = D;
-			break;
+			return 4;
 		case 0x63:
 			H = E;
-			break;
+			return 4;
 		case 0x64:
 			H = H;
-			break;
+			return 4;
 		case 0x65:
 			H = L;
-			break;
+			return 4;
 		case 0x66:
 			H = memory->read(getHL());
-			break;
+			return 8;
 		case 0x67:
 			H = A;
-			break;
+			return 4;
 		case 0x68:
 			L = B;
-			break;
+			return 4;
 		case 0x69:
 			L = C;
-			break;
+			return 4;
 		case 0x6A:
 			L = D;
-			break;
+			return 4;
 		case 0x6B:
 			L = E;
-			break;
+			return 4;
 		case 0x6C:
 			L = H;
-			break;
+			return 4;
 		case 0x6D:
 			L = L;
-			break;
+			return 4;
 		case 0x6E:
 			L = memory->read(getHL());
-			break;
+			return 8;
 		case 0x6F:
 			L = A;
-			break;
+			return 4;
 		case 0x70:
 			memory->write(getHL(), B);
-			break;
+			return 8;
 		case 0x71:
 			memory->write(getHL(), C);
-			break;
+			return 8;
 		case 0x72:
 			memory->write(getHL(), D);
-			break;
+			return 8;
 		case 0x73:
 			memory->write(getHL(), E);
-			break;
+			return 8;
 		case 0x74:
 			memory->write(getHL(), H);
-			break;
+			return 8;
 		case 0x75:
 			memory->write(getHL(), L);
-			break;
+			return 8;
 		case 0x77:
 			memory->write(getHL(), A);
-			break;
+			return 8;
 		case 0x78:
 			A = B;
-			break;
+			return 4;
 		case 0x79:
 			A = C;
-			break;
+			return 4;
 		case 0x7A:
 			A = D;
-			break;
+			return 4;
 		case 0x7B:
 			A = E;
-			break;
+			return 4;
 		case 0x7C:
 			A = H;
-			break;
+			return 4;
 		case 0x7D:
 			A = L;
-			break;
+			return 4;
 		case 0x7E:
 			A = memory->read(getHL());
-			break;
+			return 8;
 		case 0x7F:
 			A = A;
-			break;
+			return 4;
 		case 0x01:
 		{
 			uint8_t low = memory->read(PC);
@@ -429,7 +431,7 @@ void CPU::execute(uint8_t opcode) {
 			uint8_t high = memory->read(PC);
 			PC++;
 			setBC(low | (high << 8));
-			break;
+			return 12;
 		}
 		case 0x11:
 		{
@@ -438,7 +440,7 @@ void CPU::execute(uint8_t opcode) {
 			uint8_t high = memory->read(PC);
 			PC++;
 			setDE(low | (high << 8));
-			break;
+			return 12;
 		}
 		case 0x21:
 		{
@@ -447,7 +449,7 @@ void CPU::execute(uint8_t opcode) {
 			uint8_t high = memory->read(PC);
 			PC++;
 			setHL(low | (high << 8));
-			break;
+			return 12;
 		}
 		case 0x31:
 		{
@@ -456,7 +458,7 @@ void CPU::execute(uint8_t opcode) {
 			uint8_t high = memory->read(PC);
 			PC++;
 			SP = (low | (high << 8));
-			break;
+			return 12;
 		}
 		case 0x36:
 		{
@@ -465,465 +467,478 @@ void CPU::execute(uint8_t opcode) {
 
 			memory->write(getHL(), value);
 
-			break;
+			return 12;
 		}
 		case 0x03:
 			setBC(getBC() + 1);
-			break;
+			return 8;
 		case 0x13:
 			setDE(getDE() + 1);
-			break;
+			return 8;
 		case 0x23:
 			setHL(getHL() + 1);
-			break;
+			return 8;
 		case 0x33:
 			SP++;
-			break;
+			return 8;
 		case 0x0B:
 			setBC(getBC() - 1);
-			break;
+			return 8;
 		case 0x1B:
 			setDE(getDE() - 1);
-			break;
+			return 8;
 		case 0x2B:
 			setHL(getHL() - 1);
-			break;
+			return 8;
 		case 0x3B:
 			SP--;
-			break;
+			return 8;
 		case 0xC5:
 			push(getBC());
-			break;
+			return 16;
 		case 0xD5:
 			push(getDE());
-			break;
+			return 16;
 		case 0xE5:
 			push(getHL());
-			break;
+			return 16;
 		case 0xF5:
 			push(getAF());
-			break;
+			return 16;
 		case 0xC1:
 			setBC(pop());
-			break;
+			return 12;
 		case 0xD1:
 			setDE(pop());
-			break;
+			return 12;
 		case 0xE1:
 			setHL(pop());
-			break;
+			return 12;
 		case 0xF1:
 			setAF(pop());
-			break;
+			return 12;
 		case 0xD6:
 			Sub(memory->read(PC));
 			PC++;
-			break;
+			return 8;
 		case 0x90:
 			Sub(B);
-			break;
+			return 4;
 		case 0x91:
 			Sub(C);
-			break;
+			return 4;
 		case 0x92:
 			Sub(D);
-			break;
+			return 4;
 		case 0x93:
 			Sub(E);
-			break;
+			return 4;
 		case 0x94:
 			Sub(H);
-			break;
+			return 4;
 		case 0x95:
 			Sub(L);
-			break;
+			return 4;
 		case 0x96:
 			Sub(memory->read(getHL()));
-			break;
+			return 8;
 		case 0x97:
 			Sub(A);
-			break;
+			return 4;
 		case 0xA0:
 			And(B);
-			break;
+			return 4;
 		case 0xA1:
 			And(C);
-			break;
+			return 4;
 		case 0xA2:
 			And(D);
-			break;
+			return 4;
 		case 0xA3:
 			And(E);
-			break;
+			return 4;
 		case 0xA4:
 			And(H);
-			break;
+			return 4;
 		case 0xA5:
 			And(L);
-			break;
+			return 4;
 		case 0xA6:
 			And(memory->read(getHL()));
-			break;
+			return 8;
 		case 0xA7:
 			And(A);
-			break;
+			return 4;
 		case 0xE6:
 			And(memory->read(PC));
 			PC++;
-			break;
+			return 8;
 		case 0xB0:
 			Or(B);
-			break;
+			return 4;
 		case 0xB1:
 			Or(C);
-			break;
+			return 4;
 		case 0xB2:
 			Or(D);
-			break;
+			return 4;
 		case 0xB3:
 			Or(E);
-			break;
+			return 4;
 		case 0xB4:
 			Or(H);
-			break;
+			return 4;
 		case 0xB5:
 			Or(L);
-			break;
+			return 4;
 		case 0xB6:
 			Or(memory->read(getHL()));
-			break;
+			return 8;
 		case 0xB7:
 			Or(A);
-			break;
+			return 4;
 		case 0xF6:
 			Or(memory->read(PC));
 			PC++;
-			break;
+			return 8;
 		case 0xA8:
 			Xor(B);
-			break;
+			return 4;
 		case 0xA9:
 			Xor(C);
-			break;
+			return 4;
 		case 0xAA:
 			Xor(D);
-			break;
+			return 4;
 		case 0xAB:
 			Xor(E);
-			break;
+			return 4;
 		case 0xAC:
 			Xor(H);
-			break;
+			return 4;
 		case 0xAD:
 			Xor(L);
-			break;
+			return 4;
 		case 0xAE:
 			Xor(memory->read(getHL()));
-			break;
+			return 8;
 		case 0xAF:
 			Xor(A);
-			break;
+			return 4;
 		case 0xEE:
 			Xor(memory->read(PC));
 			PC++;
-			break;
+			return 8;
 		case 0x09:
 			AddBig(getBC());
-			break;
+			return 8;
 		case 0x19:
 			AddBig(getDE());
-			break;
+			return 8;
 		case 0x29:
 			AddBig(getHL());
-			break;
+			return 8;
 		case 0x39:
 			AddBig(SP);
-			break;
+			return 8;
 		case 0x18:
 			jumpRelative(true);
-			break;
+			return 8;
 		case 0x20:
 			jumpRelative(!getZeroFlag());
-			break;
+			if (!getZeroFlag()) return 12;
+			else return 8;
 		case 0x28:
 			jumpRelative(getZeroFlag());
-			break;
+			if (getZeroFlag()) return 12;
+			else return 8;
 		case 0x30:
 			jumpRelative(!getCarryFlag());
-			break;
+			if (!getCarryFlag()) return 12;
+			else return 8;
 		case 0x38:
 			jumpRelative(getCarryFlag());
-			break;
+			if (getCarryFlag()) return 12;
+			else return 8;
 		case 0xB8:
 			compare(B);
-			break;
+			return 4;
 		case 0xB9:
 			compare(C);
-			break;
+			return 4;
 		case 0xBA:
 			compare(D);
-			break;
+			return 4;
 		case 0xBB:
 			compare(E);
-			break;
+			return 4;
 		case 0xBC:
 			compare(H);
-			break;
+			return 4;
 		case 0xBD:
 			compare(L);
-			break;
+			return 4;
 		case 0xBE:
 			compare(memory->read(getHL()));
-			break;
+			return 8;
 		case 0xBF:
 			compare(A);
-			break;
+			return 4;
 		case 0x88:
 			ADC(B);
-			break;
+			return 4;
 		case 0x89:
 			ADC(C);
-			break;
+			return 4;
 		case 0x8A:
 			ADC(D);
-			break;
+			return 4;
 		case 0x8B:
 			ADC(E);
-			break;
+			return 4;
 		case 0x8C:
 			ADC(H);
-			break;
+			return 4;
 		case 0x8D:
 			ADC(L);
-			break;
+			return 4;
 		case 0x8E:
 			ADC(memory->read(getHL()));
-			break;
+			return 8;
 		case 0x8F:
 			ADC(A);
-			break;
+			return 4;
 		case 0xCE:
 			ADC(memory->read(PC));
 			PC++;
-			break;
+			return 8;
 		case 0x98:
 			SBC(B);
-			break;
+			return 4;
 		case 0x99:
 			SBC(C);
-			break;
+			return 4;
 		case 0x9A:
 			SBC(D);
-			break;
+			return 4;
 		case 0x9B:
 			SBC(E);
-			break;
+			return 4;
 		case 0x9C:
 			SBC(H);
-			break;
+			return 4;
 		case 0x9D:
 			SBC(L);
-			break;
+			return 4;
 		case 0x9E:
 			SBC(memory->read(getHL()));
-			break;
+			return 8;
 		case 0x9F:
 			SBC(A);
-			break;
+			return 4;
 		case 0xDE:
 			SBC(memory->read(PC));
 			PC++;
-			break;
+			return 8;
 		case 0xCB:
 		{
 			uint8_t newOpcode = memory->read(PC);
 			PC++;
 			std::cout << "CB Opcode: " << std::hex << (int)newOpcode << "\n";
-			executeCB(newOpcode);
-			break;
+			return executeCB(newOpcode);
 		}
 		case 0x27:
 			DAA(A);
-			break;
+			return 4;
 		case 0x2F:
 			CPL(A);
-			break;
+			return 4;
 		case 0x07:
 			RLCA(A);
-			break;
+			return 4;
 		case 0x0F:
 			RRCA(A);
-			break;
+			return 4;
 		case 0x17:
 			RLA(A);
-			break;
+			return 4;
 		case 0x1F:
 			RRA(A);
-			break;
+			return 4;
 		case 0x37:
 			SCF();
-			break;
+			return 4;
 		case 0x3F:
 			CCF();
-			break;
+			return 4;
 		case 0x02:
 			memory->write(getBC(), A);
-			break;
+			return 8;
 		case 0x0A:
 			A = memory->read(getBC());
-			break;
+			return 8;
 		case 0x08:
 			storeSPtoAddress(readAddress());
-			break;
+			return 20;
 		case 0x12:
 			memory->write(getDE(), A);
-			break;
+			return 8;
 		case 0x1A:
 			A = memory->read(getDE());
-			break;
+			return 8;
 		case 0x22:
 		{
 			uint16_t address = getHL();
 			memory->write(address, A);
 			setHL(address + 1);
-			break;
+			return 8;
 		}
 		case 0x2A:
 		{
 			uint16_t address = getHL();
 			A = memory->read(address);
 			setHL(address + 1);
-			break;
+			return 8;
 		}
 		case 0x32:
 		{
 			uint16_t address = getHL();
 			memory->write(address, A);
 			setHL(address - 1);
-			break;
+			return 8;
 		}
 		case 0x3A:
 		{
 			uint16_t address = getHL();
 			A = memory->read(address);
 			setHL(address - 1);
-			break;
+			return 8;
 		}
 		case 0xEA:
 			memory->write(readAddress(), A);
-			break;
+			return 16;
 		case 0xFA:
 			A = memory->read(readAddress());
-			break;
+			return 16;
 		case 0xE0:
 		{
 			uint8_t address = memory->read(PC);
 			PC++;
 			memory->write(0xFF00 + address, A);
-			break;
+			return 12;
 		}
 		case 0xF0:
 		{
 			uint8_t address = memory->read(PC);
 			PC++;
 			A = memory->read(0xFF00 + address);
-			break;
+			return 12;
 		}
 		case 0xE2:
 			memory->write(0xFF00 + C, A);
-			break;
+			return 8;
 		case 0xF2:
 			A = memory->read(0xFF00 + C);
-			break;
+			return 8;
 		case 0xF9:
 			SP = getHL();
-			break;
+			return 8;
 		case 0x34:
 			incrementHL(true);
-			break;
+			return 12;
 		case 0x35:
 			incrementHL(false);
-			break;
+			return 12;
 		case 0xE8:
 		{
 			int8_t offset = (int8_t)memory->read(PC);
 			PC++;
 			SP = addToSP(offset);
-			break;
+			return 16;
 		}
 		case 0xF8:
 		{
 			int8_t offset = (int8_t)memory->read(PC);
 			PC++;
 			setHL(addToSP(offset));
-			break;
+			return 12;
 		}
 		case 0xC4:
 			CallConditional(!getZeroFlag());
-			break;
+			if (!getZeroFlag()) return 24;
+			else return 12;
 		case 0xCC:
 			CallConditional(getZeroFlag());
-			break;
+			if (getZeroFlag()) return 24;
+			else return 12;
 		case 0xD4:
 			CallConditional(!getCarryFlag());
-			break;
+			if (!getCarryFlag()) return 24;
+			else return 12;
 		case 0xDC:
 			CallConditional(getCarryFlag());
-			break;
+			if (getCarryFlag()) return 24;
+			else return 12;
 		case 0xC0:
 			RetConditional(!getZeroFlag());
-			break;
+			if (!getZeroFlag()) return 20;
+			else return 8;
 		case 0xC8:
 			RetConditional(getZeroFlag());
-			break;
+			if (getZeroFlag()) return 20;
+			else return 8;
 		case 0xD0:
 			RetConditional(!getCarryFlag());
-			break;
+			if (!getCarryFlag()) return 20;
+			else return 8;
 		case 0xD8:
 			RetConditional(getCarryFlag());
-			break;
+			if (getCarryFlag()) return 20;
+			else return 8;
 		case 0xC7:
 			RST(0x0000);
-			break;
+			return 16;
 		case 0xCF:
 			RST(0x0008);
-			break;
+			return 16;
 		case 0xD7:
 			RST(0x0010);
-			break;
+			return 16;
 		case 0xDF:
 			RST(0x0018);
-			break;
+			return 16;
 		case 0xE7:
 			RST(0x0020);
-			break;
+			return 16;
 		case 0xEF:
 			RST(0x0028);
-			break;
+			return 16;
 		case 0xF7:
 			RST(0x0030);
-			break;
+			return 16;
 		case 0xFF:
 			RST(0x0038);
-			break;
+			return 16;
 		case 0xE9:
 			PC = getHL();
-			break;
+			return 4;
 		case 0xF3:
 			DI();
-			break;
+			return 4;
 		case 0xFB:
 			EI();
-			break;
+			return 4;
 		case 0xD9:
 			RETI();
-			break;
+			return 16;
 		case 0xD2:
 			jump(!getCarryFlag());
-			break;
+			if (!getCarryFlag()) return 16;
+			else return 12;
 		case 0xDA:
 			jump(getCarryFlag()); //HAPPY LAST OPCODE TO BE IMPLEMENTED 🎉🎉🎉
-			break;
+			if (getCarryFlag()) return 16;
+			else return 12;
 
 
 		default: //Yeah something is not right if this runs // Legit just the bloody crash handler
@@ -934,232 +949,233 @@ void CPU::execute(uint8_t opcode) {
 	}
 }
 
-void CPU::executeCB(uint8_t opcode) {
+int CPU::executeCB(uint8_t opcode) {
 	switch (opcode) {
 		case 0x00:
 			RLC(B);
-			break;
+			return 8;
 		case 0x01:
 			RLC(C);
-			break;
+			return 8;
 		case 0x02:
 			RLC(D);
-			break;
+			return 8;
 		case 0x03:
 			RLC(E);
-			break;
+			return 8;
 		case 0x04:
 			RLC(H);
-			break;
+			return 8;
 		case 0x05:
 			RLC(L);
-			break;
+			return 8;
 		case 0x06:
 		{
 			uint8_t value = memory->read(getHL());
 			RLC(value);
 			memory->write(getHL(), value);
-			break;
+			return 16;
 		}
 		case 0x07:
 			RLC(A);
-			break;
+			return 8;
 		case 0x08:
 			RRC(B);
-			break;
+			return 8;
 		case 0x09:
 			RRC(C);
-			break;
+			return 8;
 		case 0x0A:
 			RRC(D);
-			break;
+			return 8;
 		case 0x0B:
 			RRC(E);
-			break;
+			return 8;
 		case 0x0C:
 			RRC(H);
-			break;
+			return 8;
 		case 0x0D:
 			RRC(L);
-			break;
+			return 8;
 		case 0x0E:
 		{
 			uint8_t value = memory->read(getHL());
 			RRC(value);
 			memory->write(getHL(), value);
-			break;
+			return 16;
 		}
 		case 0x0F:
 			RRC(A);
-			break;
+			return 8;
 		case 0x10:
 			RL(B);
-			break;
+			return 8;
 		case 0x11:
 			RL(C);
-			break;
+			return 8;
 		case 0x12:
 			RL(D);
-			break;
+			return 8;
 		case 0x13:
 			RL(E);
-			break;
+			return 8;
 		case 0x14:
 			RL(H);
-			break;
+			return 8;
 		case 0x15:
 			RL(L);
-			break;
+			return 8;
 		case 0x16:
 		{
 			uint8_t value = memory->read(getHL());
 			RL(value);
 			memory->write(getHL(), value);
-			break;
+			return 16;
 		}
 		case 0x17:
 			RL(A);
-			break;
+			return 8;
 		case 0x18:
 			RR(B);
-			break;
+			return 8;
 		case 0x19:
 			RR(C);
-			break;
+			return 8;
 		case 0x1A:
 			RR(D);
-			break;
+			return 8;
 		case 0x1B:
 			RR(E);
-			break;
+			return 8;
 		case 0x1C:
 			RR(H);
-			break;
+			return 8;
 		case 0x1D:
 			RR(L);
-			break;
+			return 8;
 		case 0x1E:
 		{
 			uint8_t value = memory->read(getHL());
 			RR(value);
 			memory->write(getHL(), value);
-			break;
+			return 16;
 		}
 		case 0x1F:
 			RR(A);
-			break;
+			return 8;
 		case 0x20:
 			SLA(B);
-			break;
+			return 8;
 		case 0x21:
 			SLA(C);
-			break;
+			return 8;
 		case 0x22:
 			SLA(D);
-			break;
+			return 8;
 		case 0x23:
 			SLA(E);
-			break;
+			return 8;
 		case 0x24:
 			SLA(H);
-			break;
+			return 8;
 		case 0x25:
 			SLA(L);
-			break;
+			return 8;
 		case 0x26:
 		{
 			uint8_t value = memory->read(getHL());
 			SLA(value);
 			memory->write(getHL(), value);
+			return 16;
 		}
-			break;
+			return 8;
 		case 0x27:
 			SLA(A);
-			break;
+			return 8;
 		case 0x28:
 			SRA(B);
-			break;
+			return 8;
 		case 0x29:
 			SRA(C);
-			break;
+			return 8;
 		case 0x2A:
 			SRA(D);
-			break;
+			return 8;
 		case 0x2B:
 			SRA(E);
-			break;
+			return 8;
 		case 0x2C:
 			SRA(H);
-			break;
+			return 8;
 		case 0x2D:
 			SRA(L);
-			break;
+			return 8;
 		case 0x2E:
 		{
 			uint8_t value = memory->read(getHL());
 			SRA(value);
 			memory->write(getHL(), value);
-			break;
+			return 16;
 		}
 		case 0x2F:
 			SRA(A);
-			break;
+			return 8;
 		case 0x30:
 			Swap(B);
-			break;
+			return 8;
 		case 0x31:
 			Swap(C);
-			break;
+			return 8;
 		case 0x32:
 			Swap(D);
-			break;
+			return 8;
 		case 0x33:
 			Swap(E);
-			break;
+			return 8;
 		case 0x34:
 			Swap(H);
-			break;
+			return 8;
 		case 0x35:
 			Swap(L);
-			break;
+			return 8;
 		case 0x36:
 		{
 			uint8_t value = memory->read(getHL());
 			Swap(value);
 			memory->write(getHL(), value);
-			break;
+			return 16;
 		}
 		case 0x37:
 			Swap(A);
-			break;
+			return 8;
 		case 0x38:
 			SRL(B);
-			break;
+			return 8;
 		case 0x39:
 			SRL(C);
-			break;
+			return 8;
 		case 0x3A:
 			SRL(D);
-			break;
+			return 8;
 		case 0x3B:
 			SRL(E);
-			break;
+			return 8;
 		case 0x3C:
 			SRL(H);
-			break;
+			return 8;
 		case 0x3D:
 			SRL(L);
-			break;
+			return 8;
 		case 0x3E:
 		{
 			uint8_t value = memory->read(getHL());
 			SRL(value);
 			memory->write(getHL(), value);
-			break;
+			return 16;
 		}
 		case 0x3F:
 			SRL(A);
-			break;
+			return 80;
 		default:
 			uint8_t bit = (opcode >> 3) & 0b111;
 			uint8_t reg = opcode & 0b111;
@@ -1170,36 +1186,49 @@ void CPU::executeCB(uint8_t opcode) {
 				if (!isHL) {
 					uint8_t& regRef = getRegisterCB(reg);
 					Bit(bit, regRef);
+
+					return 8;
 				}
 				else {
 					uint8_t regRef = memory->read(getHL());
 					Bit(bit, regRef);
+
+					return 12;
 				}
 			}
 			else if (opcode >= 0x80 && opcode <= 0xBF) {
 				if (!isHL) {
 					uint8_t& regRef = getRegisterCB(reg);
 					Res(bit, regRef);
+
+					return 8;
 				}
 				else {
 					uint8_t regRef = memory->read(getHL());
 					Res(bit, regRef);
 					memory->write(getHL(), regRef);
+
+					return 16;
 				}
 			}
 			else if (opcode >= 0xC0 && opcode <= 0xFF) {
 				if (!isHL) {
 					uint8_t& regRef = getRegisterCB(reg);
 					Set(bit, regRef);
+
+					return 8;
 				}
 				else {
 					uint8_t regRef = memory->read(getHL());
 					Set(bit, regRef);
 					memory->write(getHL(), regRef);
+
+					return 16;
 				}
 			}
 			else {
 				throw std::runtime_error("Invalid CB opcode given");
+				return 0;
 			}
 	}
 }
