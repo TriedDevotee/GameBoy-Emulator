@@ -251,7 +251,7 @@ int CPU::execute(uint8_t opcode) {
 			return 4;
 		case 0x76: //HALT
 		{
-			std::cout << "HALT\n";
+			//std::cout << "HALT\n";
 
 			uint8_t pending = getPendingInterrupts();
 

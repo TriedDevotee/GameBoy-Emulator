@@ -1,6 +1,7 @@
 #include "Emulator.h"
 #include "GPU.h"
 #include <iostream>
+#include <SDL.h>
 
 Emulator::Emulator() : cartridge(), memory(&cartridge), cpu(&memory){
 	// Tile 0: colour 0 throughout
@@ -17,7 +18,7 @@ Emulator::Emulator() : cartridge(), memory(&cartridge), cpu(&memory){
 
 void Emulator::run() {
 
-	cartridge.load("Mario.gb");
+	cartridge.load("chess.gb");
 	PPU ppu(&memory);
 	memory.attachPPU(&ppu);
 
@@ -35,9 +36,68 @@ void Emulator::run() {
 		<< (int)memory.read(0x8010) << " "
 		<< (int)memory.read(0x8011) << '\n';
 
+
 	while (cpu.running) {
 
-		//cpu.running = false;
+        SDL_Event event;
+
+        while (SDL_PollEvent(&event)) {
+
+            if (event.type == SDL_QUIT) {
+                cpu.running = false;
+            }
+
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+
+                bool pressed = (event.type == SDL_KEYDOWN);
+
+                switch (event.key.keysym.sym) {
+
+                    // D-pad
+                case SDLK_RIGHT:
+                case SDLK_d:
+                    memory.setJoypadDpad(0, pressed);
+                    break;
+
+                case SDLK_LEFT:
+                case SDLK_a:
+                    memory.setJoypadDpad(1, pressed);
+                    break;
+
+                case SDLK_UP:
+                case SDLK_w:
+                    memory.setJoypadDpad(2, pressed);
+                    break;
+
+                case SDLK_DOWN:
+                case SDLK_s:
+                    memory.setJoypadDpad(3, pressed);
+                    break;
+
+                    // Buttons
+                case SDLK_k:
+                    memory.setJoypadButton(0, pressed);
+                    break;
+
+                case SDLK_j:
+                    memory.setJoypadButton(1, pressed);
+                    break;
+
+                case SDLK_RSHIFT:
+                    memory.setJoypadButton(2, pressed);
+                    break;
+
+                case SDLK_RETURN:
+                    memory.setJoypadButton(3, pressed);
+                    break;
+
+                case SDLK_ESCAPE:
+                    if (pressed)
+                        cpu.running = false;
+                    break;
+                }
+            }
+        }
 
 		int elapsed = cpu.step();
 

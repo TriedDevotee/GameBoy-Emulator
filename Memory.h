@@ -12,9 +12,9 @@ private:
 	Timer* timer;
 	PPU* ppu = nullptr;
 
-	uint8_t joypadSelect = 0x30;  // bits 4-5 as last written
-	uint8_t buttonState = 0x0F;  // bit0 A, bit1 B, bit2 Select, bit3 Start (0 = pressed)
-	uint8_t dpadState = 0x0F;  // bit0 Right, bit1 Left, bit2 Up, bit3 Down (0 = pressed)
+	uint8_t joypadSelect = 0x30;
+	uint8_t buttonState = 0x0F;
+	uint8_t dpadState = 0x0F;
 
 public:
 
@@ -29,4 +29,7 @@ public:
 
 	uint64_t LCDCWriteCount = 0;
 	uint64_t getLCDCCount();
+
+	void setJoypadButton(uint8_t bit, bool pressed);
+	void setJoypadDpad(uint8_t bit, bool pressed);
 };

@@ -53,6 +53,15 @@ void Memory::write(uint16_t address, uint8_t value) {
 		return;
 	}
 
+	if (address == 0xFF46) {
+		uint16_t source = value << 8;
+		for (int i = 0; i < 0xA0; i++) {
+			data[0xFE00 + i] = read(source + i);
+		}
+		data[0xFF46] = value;
+		return;
+	}
+
 	if (address >= 0xFF04 && address <= 0xFF07) {
 		timer->write(address, value);
 		return;
@@ -83,4 +92,26 @@ void Memory::attachPPU(PPU* ppu) {
 
 uint64_t Memory::getLCDCCount() {
 	return LCDCWriteCount;
+}
+
+void Memory::setJoypadButton(uint8_t bit, bool pressed) {
+	if (bit > 3) return;
+
+	uint8_t mask = 1 << bit;
+
+	if (pressed)
+		buttonState &= ~mask;
+	else
+		buttonState |= mask;
+}
+
+void Memory::setJoypadDpad(uint8_t bit, bool pressed) {
+	if (bit > 3) return;
+
+	uint8_t mask = 1 << bit;
+
+	if (pressed)
+		dpadState &= ~mask;
+	else
+		dpadState |= mask;
 }
