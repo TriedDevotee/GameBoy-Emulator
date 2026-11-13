@@ -13,62 +13,27 @@ Emulator::Emulator() : cartridge(), memory(&cartridge), cpu(&memory){
 		memory.write(0x8010 + i, 0xFF);
 		memory.write(0x8010 + i + 1, 0xFF);
 	}
-
-	for (int y = 0; y < 18; y++)
-	{
-		for (int x = 0; x < 20; x++)
-		{
-			if ((x + y) % 2 == 0)
-			{
-				memory.write(0x9800 + y * 32 + x, 0);
-			}
-			else
-			{
-				memory.write(0x9800 + y * 32 + x, 1);
-			}
-		}
-	}
 };
 
 void Emulator::run() {
 
-	cartridge.load("graphicsDemo.gb");
+	cartridge.load("Mario.gb");
 	PPU ppu(&memory);
 	memory.attachPPU(&ppu);
 
-	// Reset divider
-	memory.write(0xFF04, 0);
+	memory.write(0xFE02, 1);
 
-	// Set reload value
-	memory.write(0xFF06, 0x42);
+	memory.write(0xFE02, 1);
 
-	// Set TIMA just before overflow
-	memory.write(0xFF05, 0xFF);
+	memory.write(0xFF00, 0xFF);
 
-	// Enable timer, select divider bit 3
-	memory.write(0xFF07, 0x05);
+	std::cout << "OAM tile immediately after write: "
+		<< (int)memory.read(0xFE02) << '\n';
 
-	// First falling edge: overflow
-	memory.tickTimer(16);
-
-	std::cout << "After overflow: "
-		<< (int)memory.read(0xFF05) << '\n';
-
-	// Three more cycles
-	memory.tickTimer(3);
-
-	std::cout << "After 3 cycles: "
-		<< (int)memory.read(0xFF05) << '\n';
-
-	// Fourth cycle: reload
-	memory.tickTimer(1);
-
-	std::cout << "After 4 cycles: "
-		<< (int)memory.read(0xFF05) << '\n';
-
-	// Check timer interrupt flag
-	std::cout << "IF: "
-		<< (int)memory.read(0xFF0F) << '\n';
+	std::cout << std::hex
+		<< "Tile 1: "
+		<< (int)memory.read(0x8010) << " "
+		<< (int)memory.read(0x8011) << '\n';
 
 	while (cpu.running) {
 

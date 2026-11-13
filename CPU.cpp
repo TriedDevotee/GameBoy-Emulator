@@ -3,25 +3,28 @@
 #include "CPU.h"
 #include "interrupts.h"
 
+static uint16_t previousPC = 0;
+static uint8_t previousOpcode = 0;
+
 CPU::CPU(Memory* memory) {
 	std::cout << "CPU is Online\n";
 
 	this->memory = memory;
 
-	A = 0;
-	F = 0;
+	A = 0x01;
+	F = 0xB0;
 
-	B = 0;
-	C = 0;
+	B = 0x00;
+	C = 0x13;
 
-	D = 0;
-	E = 0;
+	D = 0x00;
+	E = 0xD8;
 
-	H = 0;
-	L = 0;
+	H = 0x01;
+	L = 0x4D;
 
-	PC = 0;
 	SP = 0xFFFE;
+	PC = 0x0100;
 
 	running = true;
 
@@ -60,11 +63,58 @@ int CPU::step() {
 		PC++;
 	}
 
-	//std::cout << std::hex
-		//<< "PC: " << instructionAddress
-		//<< " | Opcode: " << (int)opcode << '\n';
+	/*std::cout << std::hex
+		<< "PC: " << instructionAddress
+		<< " | Opcode: " << (int)opcode << '\n';*/
+
+	if (instructionAddress == 0x019B) {
+		uint8_t offset = memory->read(0x019C);
+		uint8_t expected = memory->read(0x019E);
+		uint16_t address = 0xFF00 + offset;
+		uint8_t actual = memory->read(address);
+
+		std::cout << std::hex
+			<< "POLLING REGISTER: FF" << (int)offset
+			<< " | Expected: " << (int)expected
+			<< " | Actual: " << (int)actual
+			<< '\n';
+	}
+
+
+	uint64_t previousWrites = memory->getLCDCCount();
+
+	if (PC == 0x0231) {
+		std::cout << "ARRIVED AT 0231 FROM "
+			<< std::hex << previousPC
+			<< " | Opcode: " << (int)previousOpcode
+			<< " | SP: " << SP
+			<< " | IME: " << IME
+			<< " | IE: " << (int)memory->read(0xFFFF)
+			<< " | IF: " << (int)memory->read(0xFF0F)
+			<< '\n';
+	}
 
 	cycles = execute(opcode);
+
+	/*if (memory->getLCDCCount() != previousWrites) {
+		std::cout << "LCDC WRITE INSTRUCTION | PC: "
+			<< std::hex << instructionAddress
+			<< " | Opcode: " << (int)opcode << '\n';
+
+		std::cout << "LCDC WRITE INSTRUCTION"
+			<< " | PC: " << std::hex << instructionAddress
+			<< " | Opcode: " << (int)opcode
+			<< " | A: " << (int)A
+			<< " | B: " << (int)B
+			<< " | C: " << (int)C
+			<< " | DE: " << getDE()
+			<< " | HL: " << getHL()
+			<< " | SP: " << SP
+			<< " | Next PC: " << PC
+			<< '\n';
+	}*/
+
+
 
 
 	if (imeEnableDelay > 0) {
@@ -73,6 +123,9 @@ int CPU::step() {
 			IME = true;
 		}
 	}
+
+	previousPC = instructionAddress;
+	previousOpcode = opcode;
 
 	return cycles;
 }
@@ -744,7 +797,7 @@ int CPU::execute(uint8_t opcode) {
 		{
 			uint8_t newOpcode = memory->read(PC);
 			PC++;
-			std::cout << "CB Opcode: " << std::hex << (int)newOpcode << "\n";
+			//std::cout << "CB Opcode: " << std::hex << (int)newOpcode << "\n";
 			return executeCB(newOpcode);
 		}
 		case 0x27:
@@ -1175,7 +1228,7 @@ int CPU::executeCB(uint8_t opcode) {
 		}
 		case 0x3F:
 			SRL(A);
-			return 80;
+			return 8;
 		default:
 			uint8_t bit = (opcode >> 3) & 0b111;
 			uint8_t reg = opcode & 0b111;
@@ -1536,7 +1589,14 @@ void CPU::call() {
 }
 
 void CPU::ret() {
-	PC = pop();
+	uint16_t oldSP = SP;
+	uint16_t returnAddress = pop();
+
+	/*std::cout << "RET: SP " << std::hex << oldSP
+		<< " -> " << SP
+		<< " | Returning to: " << returnAddress << '\n';*/
+
+	PC = returnAddress;
 }
 
 uint16_t CPU::getHL() {

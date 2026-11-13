@@ -57,11 +57,6 @@ void PPU::step(int tCycles) {
 
 	cycles += tCycles;
 
-	//if (LY == 0) {
-	//	std::cout << "Mode: " << (int)mode
-		//	<< " Cycles: " << cycles << '\n';
-	//}
-
 	switch (mode) {
 		case PPUmode::OAMScan:
 			if (cycles >= 80) {
@@ -75,8 +70,6 @@ void PPU::step(int tCycles) {
 
 				drawScanline();
 
-				//std::cout << "Drew scanline " << (int)LY << '\n';
-
 				mode = PPUmode::HBlank;
 			}
 			break;
@@ -85,11 +78,33 @@ void PPU::step(int tCycles) {
 				cycles -= 204;
 				LY++;
 
+				/*if (LY == 144 || LY == 148 || LY == 153) {
+					std::cout << "LY REACHED: " << (int)LY
+						<< " | MODE: " << (int)mode << '\n';
+				}*/
+
 				if (LY == 144) {
 					mode = PPUmode::VBlank;
 
+					static int frameCount = 0;
+					frameCount++;
 
-					//std::cout << "ENTERING VBLANK - RENDERING\n";
+					if (frameCount % 60 == 0) {
+						int nonWhitePixels = 0;
+
+						for (int i = 0; i < 160 * 144; i++) {
+							if (framebuffer[i] != 0xFFFFFFFF)
+								nonWhitePixels++;
+						}
+
+						/*std::cout << "FRAME: " << std::dec << frameCount
+							<< " | LY: " << (int)LY
+							<< " | LCDC: " << std::hex << (int)LCDC
+							<< " | BGP: " << (int)BGP
+							<< " | Non-white pixels: " << std::dec << nonWhitePixels
+							<< '\n';*/
+					}
+
 					render();
 
 					memory->requestInterrupt(Interrupts::VBLANK);
@@ -104,6 +119,12 @@ void PPU::step(int tCycles) {
 				cycles -= 456;
 				LY++;
 
+				/*if (LY == 144 || LY == 148 || LY == 153) {
+					std::cout << "LY REACHED: " << (int)LY
+						<< " | MODE: " << (int)mode << '\n';
+				}*/
+
+
 				if (LY > 153) {
 					LY = 0;
 					mode = PPUmode::OAMScan;
@@ -117,11 +138,16 @@ void PPU::step(int tCycles) {
 
 void PPU::drawScanline()
 {
+
+	//std::cout << "Drawing scanline: " << (int)LY << '\n';
+
 	if (!(LCDC & 0x01)) {
 
 		for (int x = 0; x < 160; x++) {
-			framebuffer[LY * 160 + x] = convertColor(0);
+			framebuffer[LY * 160 + x] = convertColor(0, BGP);
 		}
+
+		drawSpritesForScanline();
 
 		return;
 	}
@@ -160,8 +186,10 @@ void PPU::drawScanline()
 			(((high >> bit) & 1) << 1) |
 			((low >> bit) & 1);
 
-		framebuffer[y * 160 + x] = convertColor(color);
+		framebuffer[y * 160 + x] = convertColor(color, BGP);
 	}
+
+	drawSpritesForScanline();
 }
 
 void PPU::drawBackground()
@@ -199,7 +227,7 @@ void PPU::drawBackground()
 				(((high >> bit) & 1) << 1) |
 				((low >> bit) & 1);
 
-			framebuffer[y * 160 + x] = convertColor(color);
+			framebuffer[y * 160 + x] = convertColor(color, BGP);
 		}
 	}
 }
@@ -216,14 +244,14 @@ void PPU::drawTile(uint16_t address, int screenX, int screenY) {
 			uint8_t highBit = (high >> bit) & 1;
 			uint8_t color = (highBit << 1) | lowBit;
 
-			framebuffer[(screenY + row) * 160 + (screenX + col)] = convertColor(color);
+			framebuffer[(screenY + row) * 160 + (screenX + col)] = convertColor(color, BGP);
 		}
 	}
 }
 
-uint32_t PPU::convertColor(uint8_t color) {
+uint32_t PPU::convertColor(uint8_t color, uint8_t palette) {
 
-	uint8_t shade = (BGP >> (color * 2)) & 0x03;
+	uint8_t shade = (palette >> (color * 2)) & 0x03;
 
 	switch (shade) {
 		case 0:
@@ -255,6 +283,10 @@ uint8_t PPU::readRegister(uint16_t address) {
 			return LYC;
 		case 0xFF47:
 			return BGP;
+		case 0xFF48:
+			return OBP0;
+		case 0xFF49:
+			return OBP1;
 	}
 
 	return 0;
@@ -264,6 +296,11 @@ void PPU::writeRegister(uint16_t address, uint8_t value) {
 	switch (address) {
 		case 0xFF40:
 		{
+
+			/*std::cout << "LCDC WRITE: "
+				<< std::hex << (int)LCDC
+				<< " -> " << (int)value << '\n';*/
+
 			bool wasEnabled = LCDC & 0x80;
 			LCDC = value;
 			bool isEnabled = LCDC & 0x80;
@@ -301,6 +338,12 @@ void PPU::writeRegister(uint16_t address, uint8_t value) {
 		case 0xFF47:
 			BGP = value;
 			break;
+		case 0xFF48:
+			OBP0 = value;
+			break;
+		case 0xFF49:
+			OBP1 = value;
+			break;
 	}
 
 	return;
@@ -315,5 +358,66 @@ void PPU::updateSTAT() {
 	}
 	else {
 		STAT &= ~0x04;
+	}
+}
+
+void PPU::drawSpritesForScanline() {
+
+	if (!(LCDC & 0x02)) return;
+
+
+	for (int i = 39; i >= 0; i--) {
+		uint16_t address = 0xFE00 + (i * 4);
+
+		uint8_t spriteY = memory->read(address);
+		uint8_t spriteX = memory->read(address + 1);
+		uint8_t tile = memory->read(address + 2);
+		uint8_t attributes = memory->read(address + 3);
+
+		int screenY = spriteY - 16;
+		int screenX = spriteX - 8;
+
+		int row = LY - screenY;
+
+		if (row >= 0 && row < 8) {
+			if (attributes & 0x40) {
+				row = 7 - row;
+			}
+
+			uint16_t tileAddress = 0x8000 + tile * 16;
+			
+			uint8_t low = memory->read(tileAddress + row * 2);
+			uint8_t high = memory->read(tileAddress + row * 2 + 1);
+
+			bool flipX = attributes & 0x20;
+
+			uint8_t palette = 0;
+			if (attributes & 0x10) {
+				palette = OBP1;
+			}
+			else {
+				palette = OBP0;
+			}
+
+			for (int col = 0; col < 8; col++) {
+				int bit = flipX ? col : 7 - col;
+
+				uint8_t color = (((high >> bit) & 1) << 1) | ((low >> bit) & 1);
+
+
+				if (!(color == 0)) {
+					int x = screenX + col;
+
+					if (x >= 0 && x < 160) {
+
+						framebuffer[LY * 160 + x] = convertColor(color, palette);
+					}
+				}
+				else {
+					//std::cout << "Ha no color is 0\n";
+				}
+			}
+
+		}
 	}
 }

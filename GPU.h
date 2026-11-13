@@ -20,7 +20,7 @@ class PPU {
 		void step(int tCycles);
 		void render();
 		void drawTile(uint16_t tileIndex, int screenX, int screenY);
-		uint32_t convertColor(uint8_t color);
+		uint32_t convertColor(uint8_t color, uint8_t palette);
 		void drawBackground();
 		void drawScanline();
 
@@ -52,5 +52,10 @@ class PPU {
 
 		void updateMode();
 		void updateSTAT();
+
+		uint8_t OBP0 = 0xFF;
+		uint8_t OBP1 = 0xFF;
+
+		void drawSpritesForScanline();
 
 };
