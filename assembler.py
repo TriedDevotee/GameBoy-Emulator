@@ -360,7 +360,7 @@ asm.emit(
     0x76              # HALT
 )"""
 
-asm.emit(
+"""asm.emit(
     0xF3,             # DI
     0x3E, 0x01,       # LD A,01
     0xEA, 0xFF, 0xFF, # LD (FFFF),A
@@ -375,7 +375,264 @@ asm.emit(
     0xEA, 0x0F, 0xFF  # LD (FF0F),A ; Clear IF
 )
 
-asm.emit(0x76)
+asm.emit(0x76)"""
+
+
+
+"""asm.emit(
+    # ==========================================
+    # 1. Initialise registers
+    # ==========================================
+
+    0x31, 0x00, 0xD0, # LD SP,D000
+    0x3E, 0x10,       # LD A,10
+    0x06, 0x05,       # LD B,05
+    0x0E, 0x03,       # LD C,03
+    0x16, 0x00,       # LD D,00
+
+    # ==========================================
+    # 2. Arithmetic
+    # ==========================================
+
+    0x80,             # ADD A,B       A = 15
+    0x81,             # ADD A,C       A = 18
+    0x90,             # SUB B         A = 13
+    0xA1,             # AND C         A = 01
+    0xF6, 0x80,       # OR 80         A = 81
+    0xEE, 0x01,       # XOR 01        A = 80
+    0xFE, 0x80,       # CP 80         Z = 1
+
+    # ==========================================
+    # 3. Memory operations
+    # ==========================================
+
+    0x21, 0x00, 0xC0, # LD HL,C000
+    0x77,             # LD (HL),A
+    0x23,             # INC HL
+    0x36, 0x42,       # LD (HL),42
+    0x7E,             # LD A,(HL)
+    0x23,             # INC HL
+    0x36, 0x99,       # LD (HL),99
+    0x2B,             # DEC HL
+    0x7E,             # LD A,(HL)
+
+    # ==========================================
+    # 4. Stack operations
+    # ==========================================
+
+    0xC5,             # PUSH BC
+    0xD5,             # PUSH DE
+    0xC1,             # POP BC
+    0xD1,             # POP DE
+
+    # ==========================================
+    # 5. Loop and conditional jumps
+    # ==========================================
+
+    0x06, 0x05,       # LD B,05
+
+    # LOOP:
+    0x05,             # DEC B
+    0x20, 0xFD,       # JR NZ,LOOP (-3 bytes)
+
+    # ==========================================
+    # 6. Finish in a harmless infinite loop
+    # ==========================================
+
+    0x18, 0xFE        # JR -2
+)"""
+
+
+"""asm.emit(
+    # Initialise
+    0x31, 0x00, 0xD0,  # LD SP, D000
+    0x3E, 0xFC,        # LD A, FC
+    0xE0, 0x47,        # LDH (FF47), A -- initial palette
+    0x06, 0xAA,        # LD B, 02 -- wait two frames
+
+    # WAIT_FOR_VBLANK:
+    0xF0, 0x44,        # LDH A, (FF44) -- read LY
+    0xFE, 0x90,        # CP 144
+    0x20, 0xFA,        # JR NZ, WAIT_FOR_VBLANK
+
+    # WAIT_FOR_NEXT_FRAME:
+    0xF0, 0x44,        # LDH A, (FF44)
+    0xFE, 0x90,        # CP 144
+    0x28, 0xFA,        # JR Z, WAIT_FOR_NEXT_FRAME
+
+    # One VBlank has passed
+    0x05,              # DEC B
+    0x20, 0xF1,        # JR NZ, WAIT_FOR_VBLANK
+
+    # Two frames have passed: invert palette
+    0x06, 0xAA,        # LD B, 02
+    0xF0, 0x47,        # LDH A, (FF47)
+    0xEE, 0xFF,        # XOR FF -- FC <-> 03
+    0xE0, 0x47,        # LDH (FF47), A
+
+    0x18, 0xE7         # JR WAIT_FOR_VBLANK
+)"""
+
+
+"""asm.emit(
+    # ==========================================
+    # 1. GENERATE THE BACKGROUND TILE MAP
+    # ==========================================
+
+    0x31, 0x00, 0xD0,  # LD SP, D000
+    0x21, 0x00, 0x98,  # LD HL, 9800 -- tile map
+    0x06, 0x20,        # LD B, 32 -- 32 rows
+    0x16, 0x00,        # LD D, 00 -- starting tile
+
+    # ROW:
+    0x7A,              # LD A, D
+    0x0E, 0x20,        # LD C, 32
+
+    # COLUMN:
+    0x22,              # LD (HL+), A
+    0xEE, 0x01,        # XOR 01 -- alternate tile
+    0x0D,              # DEC C
+    0x20, 0xFA,        # JR NZ, COLUMN
+
+    # Alternate starting tile for next row
+    0x7A,              # LD A, D
+    0xEE, 0x01,        # XOR 01
+    0x57,              # LD D, A
+    0x05,              # DEC B
+    0x20, 0xF0,        # JR NZ, ROW
+
+    # ==========================================
+    # 2. INITIALISE THE DISPLAY
+    # ==========================================
+
+    0x3E, 0x00,        # LD A, 00
+    0xE0, 0x43,        # LDH (SCX), A
+    0xE0, 0x42,        # LDH (SCY), A
+
+    0x3E, 0xE4,        # LD A, E4 -- normal grayscale palette
+    0xE0, 0x47,        # LDH (BGP), A
+
+    0x06, 0x00,        # LD B, 00 -- frame counter
+
+    # ==========================================
+    # 3. WAIT FOR VBLANK
+    # ==========================================
+
+    # WAIT_VBLANK:
+    0xF0, 0x44,        # LDH A, (LY)
+    0xFE, 0x90,        # CP 144
+    0x20, 0xFA,        # JR NZ, WAIT_VBLANK
+
+    # WAIT_END:
+    0xF0, 0x44,        # LDH A, (LY)
+    0xFE, 0x90,        # CP 144
+    0x28, 0xFA,        # JR Z, WAIT_END
+
+    # ==========================================
+    # 4. ANIMATE THE BACKGROUND
+    # ==========================================
+
+    0xF0, 0x43,        # LDH A, (SCX)
+    0x3C,              # INC A
+    0xE0, 0x43,        # LDH (SCX), A
+
+    0xF0, 0x42,        # LDH A, (SCY)
+    0x3C,              # INC A
+    0xE0, 0x42,        # LDH (SCY), A
+
+    # ==========================================
+    # 5. INVERT PALETTE EVERY 16 FRAMES
+    # ==========================================
+
+    0x04,              # INC B
+    0x78,              # LD A, B
+    0xE6, 0x0F,        # AND 0F
+    0x20, 0x06,        # JR NZ, SKIP_PALETTE
+
+    0xF0, 0x47,        # LDH A, (BGP)
+    0xEE, 0xFF,        # XOR FF
+    0xE0, 0x47,        # LDH (BGP), A
+
+    # SKIP_PALETTE:
+    0x18, 0xDC         # JR WAIT_VBLANK
+)"""
+
+
+
+asm.emit(
+    # Stack pointer
+    0x31, 0x00, 0xD0,
+
+    # Enable LCD, background and sprites
+    0x3E, 0x93,
+    0xEA, 0x40, 0xFF,
+
+    # Sprite palette
+    0x3E, 0xE4,
+    0xEA, 0x48, 0xFF,
+
+    # Sprite Y = 56 (screen Y = 40)
+    0x3E, 0x38,
+    0xEA, 0x00, 0xFE,
+
+    # Sprite X = 88 (screen X = 80)
+    0x3E, 0x58,
+    0xEA, 0x01, 0xFE,
+
+    # Sprite tile = 1
+    0x3E, 0x01,
+    0xEA, 0x02, 0xFE,
+
+    # Attributes = 0
+    0xAF,
+    0xEA, 0x03, 0xFE,
+
+    # B = 1 (movement direction)
+    0x06, 0x01,
+
+    # LOOP:
+    # Read current X
+    0xFA, 0x01, 0xFE,
+
+    # Add movement direction
+    0x80,
+
+    # Write updated X
+    0xEA, 0x01, 0xFE,
+
+    # Have we reached the right boundary?
+    0xFE, 0xA0,
+    0x20, 0x04,       # JR NZ, CHECK_LEFT
+
+    # Reverse direction: B = -1
+    0x06, 0xFF,
+    0x18, 0x06,       # JR DELAY
+
+    # CHECK_LEFT:
+    0xFE, 0x20,
+    0x20, 0x02,       # JR NZ, DELAY
+
+    # Reverse direction: B = +1
+    0x06, 0x01,
+
+    # DELAY:
+    0x16, 0x20,       # LD D, 32
+
+    # OUTER:
+    0x1E, 0xFF,       # LD E, 255
+
+    # INNER:
+    0x1D,             # DEC E
+    0x20, 0xFD,       # JR NZ, INNER
+
+    0x15,             # DEC D
+    0x20, 0xF8,       # JR NZ, OUTER
+
+    # Return to LOOP
+    0x18, 0xDF
+)
+
+
 
 
 
@@ -386,7 +643,7 @@ asm.emit(0x76)
 
 program = asm.build()
 
-with open("haltTest2.gb", "wb") as f:
+with open("spriteTest.gb", "wb") as f:
     f.write(program)
 
 print(f"Generated {len(program)} bytes")
