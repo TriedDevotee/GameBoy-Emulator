@@ -10,7 +10,7 @@ I chose C++ for its performance, control over memory management, and suitability
 
 ## Current Progress
 
-<img width="790" height="718" alt="image" src="https://github.com/user-attachments/assets/3994c012-8eb0-43bd-b751-c6790abf43eb" />
+<img width="790" height="718" alt="image" src="https://github.com/user-attachments/assets/3994c012-8eb0-43bd-b751-c6790abf43eb" /><br/>
 Note: this is the CPU passing every Blargg instruction test
 
 ### CPU
