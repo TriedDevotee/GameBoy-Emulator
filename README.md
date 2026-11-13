@@ -24,15 +24,17 @@ Implemented functionality includes:
 - CB-prefixed bit manipulation, rotations and shifts
 - Interrupt infrastructure
 
+### PPU
+
+The PPU currently allows for full VRAM reading and rendering, with the complete GameBoy render pipeline in place. This includes OAM, drawing, HBlank and VBlank
+
 ### Testing
 
-I've developed a custom Python assembler and CPU stress test to generate programs for the emulator.
-The assembler was generated as a first draft by GPT-6, as a way to ensure my focus remained on the program at hand.
-I will be rewriting the assembler at a later date in C++
+The code currently boots most industry grade cartridges to the display!
 
-The current test exercises instruction execution across arithmetic, flags, memory access, stack operations, bit manipulation and control flow. It successfully reaches a designated success condition without triggering the failure handler.
+In terms of next steps, I will be rewriting the python assembler to an actual C++ assembler, in order to assemble custom assembly programs to the emulator, and run them. 
 
-The CPU also provides register-state tracing to help debug instruction execution.
+I will also be running Blargg's test ROMs, hoping for a pass, to verify the quality of the CPU code.
 
 ## Roadmap
 
