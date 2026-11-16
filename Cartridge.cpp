@@ -34,6 +34,11 @@ bool Cartridge::load(std::string filename) {
 
 	std::cout << "Loaded ROM size: " << rom.size() << " bytes\n";
 
+    bankCount = (rom.size() + 0x3FFF) / 0x4000;
+
+    static const size_t ramSizes[] = { 0, 0, 0x2000, 0x8000, 0x20000, 0x10000 };
+    if (ramSize < 6) ram.assign(ramSizes[ramSize], 0);
+
     printHeader();
 
 	return true;
@@ -107,6 +112,11 @@ uint8_t Cartridge::read(uint16_t address) {
 }
 
 void Cartridge::write(uint16_t address, uint8_t value) {
+    if (address <= 0x1FFF) { 
+        ramEnabled = (value & 0x0F) == 0x0A; 
+        return; 
+    }
+
     if (cartridgeType < 0x01 || cartridgeType > 0x03) {
         return;
     }
@@ -126,3 +136,16 @@ void Cartridge::write(uint16_t address, uint8_t value) {
     }
 }
 
+
+
+uint8_t Cartridge::readRam(uint16_t address) {
+    if (!ramEnabled || ram.empty()) return 0xFF;
+    size_t bank = (bankingMode == 1) ? bankHigh2 : 0;
+    return ram[(bank * 0x2000 + (address - 0xA000)) % ram.size()];
+}
+
+void Cartridge::writeRam(uint16_t address, uint8_t value) {
+    if (!ramEnabled || ram.empty()) return;
+    size_t bank = (bankingMode == 1) ? bankHigh2 : 0;
+    ram[(bank * 0x2000 + (address - 0xA000)) % ram.size()] = value;
+}

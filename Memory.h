@@ -32,4 +32,6 @@ public:
 
 	void setJoypadButton(uint8_t bit, bool pressed);
 	void setJoypadDpad(uint8_t bit, bool pressed);
+
+	void dumpVRAM();
 };

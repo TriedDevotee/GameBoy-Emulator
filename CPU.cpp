@@ -249,15 +249,13 @@ int CPU::execute(uint8_t opcode) {
 		case 0x87:
 			Add(A);
 			return 4;
-		case 0x76: //HALT
+		case 0x76: // HALT
 		{
-			//std::cout << "HALT\n";
-
 			uint8_t pending = getPendingInterrupts();
 
-			if (!IME && pending != 0) {
+			if (!IME && pending != 0 && imeEnableDelay == 0) {
 				haltBug = true;
-			} 
+			}
 			else {
 				state = CPUState::Halted;
 			}
@@ -1460,13 +1458,7 @@ void CPU::RL(uint8_t& reg)
 	uint8_t oldCarry = getCarryFlag() ? 1 : 0;
 	uint8_t newCarry = reg >> 7;
 
-	std::cout << "RL input: " << std::hex << (int)reg << "\n";
-	std::cout << "Old carry: " << (int)oldCarry << "\n";
-	std::cout << "New carry: " << (int)newCarry << "\n";
-
 	reg = (reg << 1) | oldCarry;
-
-	std::cout << "RL output: " << (int)reg << "\n";
 
 	setZeroFlag(reg == 0);
 	setSubtractFlag(false);

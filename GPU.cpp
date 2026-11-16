@@ -90,6 +90,7 @@ void PPU::step(int tCycles) {
 					frameCount++;
 
 					if (frameCount % 60 == 0) {
+
 						int nonWhitePixels = 0;
 
 						for (int i = 0; i < 160 * 144; i++) {
@@ -138,97 +139,61 @@ void PPU::step(int tCycles) {
 
 void PPU::drawScanline()
 {
-
-	//std::cout << "Drawing scanline: " << (int)LY << '\n';
-
 	if (!(LCDC & 0x01)) {
-
 		for (int x = 0; x < 160; x++) {
 			framebuffer[LY * 160 + x] = convertColor(0, BGP);
 		}
-
-		drawSpritesForScanline();
-
-		return;
+	}
+	else {
+		drawBackgroundForScanline();
 	}
 
+	drawSpritesForScanline();
+
+	/*if (LY == 80) {
+		std::cout << "SCROLL DEBUG | "
+			<< "SCX: " << (int)SCX
+			<< " | SCY: " << (int)SCY
+			<< " | LCDC: " << std::hex << (int)LCDC
+			<< std::dec << '\n';
+	}*/
+}
+
+void PPU::drawBackgroundForScanline()
+{
 	uint16_t mapAddress = (LCDC & 0x08) ? 0x9C00 : 0x9800;
-
-	int y = LY;
-
-	uint8_t bgY = (y + SCY) & 0xFF;
 
 	for (int x = 0; x < 160; x++)
 	{
+
 		uint8_t bgX = (x + SCX) & 0xFF;
+		uint8_t bgY = (LY + SCY) & 0xFF;
 
 		uint16_t mapIndex =
 			mapAddress + (bgY / 8) * 32 + (bgX / 8);
 
 		uint8_t tile = memory->read(mapIndex);
 
-		uint16_t tileAddress = 0;
+		uint16_t tileAddress;
 
 		if (LCDC & 0x10)
 			tileAddress = 0x8000 + tile * 16;
 		else
-			tileAddress = 0x9000 + static_cast<int8_t>(tile) * 16;
+			tileAddress = 0x9000 + (int8_t)tile * 16;
 
 		uint8_t row = bgY % 8;
 		uint8_t col = bgX % 8;
 
+		int bit = 7 - col;
+
 		uint8_t low = memory->read(tileAddress + row * 2);
 		uint8_t high = memory->read(tileAddress + row * 2 + 1);
-
-		int bit = 7 - col;
 
 		uint8_t color =
 			(((high >> bit) & 1) << 1) |
 			((low >> bit) & 1);
 
-		framebuffer[y * 160 + x] = convertColor(color, BGP);
-	}
-
-	drawSpritesForScanline();
-}
-
-void PPU::drawBackground()
-{
-	uint16_t mapAddress = (LCDC & 0x08) ? 0x9C00 : 0x9800;
-
-	for (int y = 0; y < 144; y++)
-	{
-		for (int x = 0; x < 160; x++)
-		{
-			uint8_t bgX = (x + SCX) & 0xFF;
-			uint8_t bgY = (y + SCY) & 0xFF;
-
-			uint16_t mapIndex =
-				mapAddress + (bgY / 8) * 32 + (bgX / 8);
-
-			uint8_t tile = memory->read(mapIndex);
-
-			uint16_t tileAddress;
-
-			if (LCDC & 0x10)
-				tileAddress = 0x8000 + tile * 16;
-			else
-				tileAddress = 0x9000 + (int8_t) (tile) * 16;
-
-			uint8_t row = bgY % 8;
-			uint8_t col = bgX % 8;
-
-			uint8_t low = memory->read(tileAddress + row * 2);
-			uint8_t high = memory->read(tileAddress + row * 2 + 1);
-
-			int bit = 7 - col;
-
-			uint8_t color =
-				(((high >> bit) & 1) << 1) |
-				((low >> bit) & 1);
-
-			framebuffer[y * 160 + x] = convertColor(color, BGP);
-		}
+		framebuffer[LY * 160 + x] = convertColor(color, BGP);
 	}
 }
 
@@ -359,6 +324,28 @@ void PPU::updateSTAT() {
 	else {
 		STAT &= ~0x04;
 	}
+
+	bool newStatLine = false;
+
+	if (LCDC & 0x80) {
+		if ((STAT & 0x40) && (STAT & 0x04))
+			newStatLine = true;
+
+		if ((STAT & 0x20) && mode == PPUmode::OAMScan)
+			newStatLine = true;
+
+		if ((STAT & 0x10) && mode == PPUmode::VBlank)
+			newStatLine = true;
+
+		if ((STAT & 0x08) && mode == PPUmode::HBlank)
+			newStatLine = true;
+	}
+
+	if (newStatLine && !statInterruptLine) {
+		memory->requestInterrupt(Interrupts::LCD_STAT);
+	}
+
+	statInterruptLine = newStatLine;
 }
 
 void PPU::drawSpritesForScanline() {
@@ -377,11 +364,20 @@ void PPU::drawSpritesForScanline() {
 		int screenY = spriteY - 16;
 		int screenX = spriteX - 8;
 
+		int spriteHeight = (LCDC & 0x04) ? 16 : 8;
+
 		int row = LY - screenY;
 
-		if (row >= 0 && row < 8) {
+		if (row >= 0 && row < spriteHeight) {
+
 			if (attributes & 0x40) {
-				row = 7 - row;
+				row = spriteHeight - 1 - row;
+			}
+
+			if (spriteHeight == 16) {
+				tile &= 0xFE;
+				tile += row / 8;
+				row %= 8;
 			}
 
 			uint16_t tileAddress = 0x8000 + tile * 16;

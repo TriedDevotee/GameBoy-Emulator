@@ -18,7 +18,7 @@ Emulator::Emulator() : cartridge(), memory(&cartridge), cpu(&memory){
 
 void Emulator::run() {
 
-	cartridge.load("chess.gb");
+	cartridge.load("mario.gb");
 	PPU ppu(&memory);
 	memory.attachPPU(&ppu);
 

@@ -22,6 +22,7 @@ class PPU {
 		void drawTile(uint16_t tileIndex, int screenX, int screenY);
 		uint32_t convertColor(uint8_t color, uint8_t palette);
 		void drawBackground();
+		void drawBackgroundForScanline();
 		void drawScanline();
 
 		uint8_t readRegister(uint16_t address);
@@ -49,6 +50,8 @@ class PPU {
 
 		int cycles = 0;
 		PPUmode mode = PPUmode::OAMScan;
+
+		bool statInterruptLine = false;
 
 		void updateMode();
 		void updateSTAT();

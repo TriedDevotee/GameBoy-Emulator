@@ -15,12 +15,34 @@ Memory::Memory(Cartridge* cartridge) {
 	timer = new Timer(this);
 }
 
+void Memory::dumpVRAM() {
+	printf("--- BG MAP 9800 ---\n");
+	for (int row = 0; row < 32; row++) {
+		for (int col = 0; col < 32; col++)
+			printf("%02X ", data[0x9800 + row * 32 + col]);
+		printf("\n");
+	}
+
+	int nonZero = 0;
+	for (int i = 0x8000; i < 0x9800; i++)
+		if (data[i] != 0) nonZero++;
+
+	printf("Tile data non-zero bytes: %d / 6144\n", nonZero);
+	printf("LCDC=%02X SCX=%02X SCY=%02X BGP=%02X\n",
+		ppu->readRegister(0xFF40), ppu->readRegister(0xFF43),
+		ppu->readRegister(0xFF42), ppu->readRegister(0xFF47));
+}
+
 uint8_t Memory::read(uint16_t address) {
 	if (address == 0xFF00) {
 		uint8_t result = 0xC0 | (joypadSelect & 0x30) | 0x0F;
 		if (!(joypadSelect & 0x20)) result &= (buttonState | 0xF0);  // bit 5 low selects buttons
 		if (!(joypadSelect & 0x10)) result &= (dpadState | 0xF0);  // bit 4 low selects d-pad
 		return result;
+	}
+
+	if (address >= 0xA000 && address <= 0xBFFF) {
+		return cartridge->readRam(address);
 	}
 
 	if (address >= 0xFF04 && address <= 0xFF07) {
@@ -39,6 +61,38 @@ uint8_t Memory::read(uint16_t address) {
 }
 
 void Memory::write(uint16_t address, uint8_t value) {
+
+	/*if (address == 0xFF43) {
+		std::cout << "SCX WRITE: "
+			<< std::dec << (int)value
+			<< " | LY: " << (int)read(0xFF44)
+			<< " | STAT: " << (int)read(0xFF41)
+			<< '\n';
+	}
+
+	if (address >= 0x9800 && address <= 0x9FFF) {
+		std::cout << "TILEMAP WRITE: "
+			<< std::hex << address
+			<< " = " << (int)value << '\n';
+	}*/
+
+	/*if (address == 0xFF43) {
+		std::cout << "SCX WRITE: "
+			<< (int)value
+			<< std::dec << '\n';
+	}*/
+
+
+	if (address == 0xFF02 && value == 0x81) {
+		std::cout << (char)data[0xFF01] << std::flush;
+		data[0xFF02] = 0;
+		return;
+	}
+
+	if (address >= 0xA000 && address <= 0xBFFF) {
+		cartridge->writeRam(address, value);
+		return;
+	}
 
 	if (address == 0xFF00) {
 		joypadSelect = value & 0x30;
