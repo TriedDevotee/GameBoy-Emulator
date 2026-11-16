@@ -2,23 +2,24 @@
 #include "GPU.h"
 #include <iostream>
 #include <SDL.h>
+#include <cstring>
 
 Emulator::Emulator() : cartridge(), memory(&cartridge), cpu(&memory){
-	// Tile 0: colour 0 throughout
+
 	for (int i = 0; i < 16; i++)
 		memory.write(0x8000 + i, 0x00);
 
-	// Tile 1: colour 3 throughout
 	for (int i = 0; i < 16; i += 2)
 	{
 		memory.write(0x8010 + i, 0xFF);
 		memory.write(0x8010 + i + 1, 0xFF);
 	}
+    //This just fills the framebuffer so there's no crashes :)
 };
 
-void Emulator::run() {
+void Emulator::run(std::string romName) {
 
-	cartridge.load("mario.gb");
+	cartridge.load(romName);
 	PPU ppu(&memory);
 	memory.attachPPU(&ppu);
 
@@ -53,7 +54,6 @@ void Emulator::run() {
 
                 switch (event.key.keysym.sym) {
 
-                    // D-pad
                 case SDLK_RIGHT:
                 case SDLK_d:
                     memory.setJoypadDpad(0, pressed);
@@ -103,9 +103,6 @@ void Emulator::run() {
 
 		memory.tickTimer(elapsed);
 
-		//cpu.printState();
-
 		ppu.step(elapsed);
-		//SDL_Delay(10);
 	}
 }

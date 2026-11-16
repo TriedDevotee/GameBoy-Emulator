@@ -111,7 +111,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Libraries\SDL2-2.32.10\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Libraries\SDL2-2.32.10\include;$(ProjectDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,26 +142,26 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Cartridge.cpp" />
-    <ClCompile Include="timer.cpp" />
-    <ClCompile Include="CPU.cpp" />
-    <ClCompile Include="Emulator.cpp" />
-    <ClCompile Include="GPU.cpp" />
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\Cartridge.cpp" />
+    <ClCompile Include="src\timer.cpp" />
+    <ClCompile Include="src\CPU.cpp" />
+    <ClCompile Include="src\Emulator.cpp" />
+    <ClCompile Include="src\GPU.cpp" />
+    <ClCompile Include="src\main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="src\Memory.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="timer.h" />
-    <ClInclude Include="CPU.h" />
-    <ClInclude Include="Emulator.h" />
-    <ClInclude Include="GPU.h" />
-    <ClInclude Include="Memory.h" />
-    <ClInclude Include="interrupts.h" />
+    <ClInclude Include="include\timer.h" />
+    <ClInclude Include="include\CPU.h" />
+    <ClInclude Include="include\Emulator.h" />
+    <ClInclude Include="include\GPU.h" />
+    <ClInclude Include="include\Memory.h" />
+    <ClInclude Include="include\interrupts.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Cartridge.h" />
+    <None Include="include\Cartridge.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

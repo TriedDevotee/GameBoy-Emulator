@@ -38,6 +38,7 @@ uint8_t Memory::read(uint16_t address) {
 		uint8_t result = 0xC0 | (joypadSelect & 0x30) | 0x0F;
 		if (!(joypadSelect & 0x20)) result &= (buttonState | 0xF0);  // bit 5 low selects buttons
 		if (!(joypadSelect & 0x10)) result &= (dpadState | 0xF0);  // bit 4 low selects d-pad
+																   // And thats what broke everything
 		return result;
 	}
 
@@ -61,27 +62,6 @@ uint8_t Memory::read(uint16_t address) {
 }
 
 void Memory::write(uint16_t address, uint8_t value) {
-
-	/*if (address == 0xFF43) {
-		std::cout << "SCX WRITE: "
-			<< std::dec << (int)value
-			<< " | LY: " << (int)read(0xFF44)
-			<< " | STAT: " << (int)read(0xFF41)
-			<< '\n';
-	}
-
-	if (address >= 0x9800 && address <= 0x9FFF) {
-		std::cout << "TILEMAP WRITE: "
-			<< std::hex << address
-			<< " = " << (int)value << '\n';
-	}*/
-
-	/*if (address == 0xFF43) {
-		std::cout << "SCX WRITE: "
-			<< (int)value
-			<< std::dec << '\n';
-	}*/
-
 
 	if (address == 0xFF02 && value == 0x81) {
 		std::cout << (char)data[0xFF01] << std::flush;

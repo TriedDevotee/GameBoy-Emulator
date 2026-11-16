@@ -74,9 +74,6 @@ void Cartridge::printHeader() {
 }
 
 uint8_t Cartridge::read(uint16_t address) {
-    if (address >= 0x8000) {
-        throw std::out_of_range("Invalid cartridge ROM address");
-    }
 
     size_t bank = 0;
 

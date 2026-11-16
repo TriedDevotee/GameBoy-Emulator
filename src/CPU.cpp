@@ -96,27 +96,6 @@ int CPU::step() {
 
 	cycles = execute(opcode);
 
-	/*if (memory->getLCDCCount() != previousWrites) {
-		std::cout << "LCDC WRITE INSTRUCTION | PC: "
-			<< std::hex << instructionAddress
-			<< " | Opcode: " << (int)opcode << '\n';
-
-		std::cout << "LCDC WRITE INSTRUCTION"
-			<< " | PC: " << std::hex << instructionAddress
-			<< " | Opcode: " << (int)opcode
-			<< " | A: " << (int)A
-			<< " | B: " << (int)B
-			<< " | C: " << (int)C
-			<< " | DE: " << getDE()
-			<< " | HL: " << getHL()
-			<< " | SP: " << SP
-			<< " | Next PC: " << PC
-			<< '\n';
-	}*/
-
-
-
-
 	if (imeEnableDelay > 0) {
 		imeEnableDelay--;
 		if (imeEnableDelay == 0) {
@@ -795,7 +774,6 @@ int CPU::execute(uint8_t opcode) {
 		{
 			uint8_t newOpcode = memory->read(PC);
 			PC++;
-			//std::cout << "CB Opcode: " << std::hex << (int)newOpcode << "\n";
 			return executeCB(newOpcode);
 		}
 		case 0x27:

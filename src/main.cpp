@@ -8,7 +8,7 @@ int main() {
 
 	Emulator emulator;
 
-	emulator.run();
+	emulator.run("cartridges/asteroids.gb");
 
 	return 0;
 }

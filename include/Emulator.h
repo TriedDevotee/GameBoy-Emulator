@@ -3,6 +3,7 @@
 #include "CPU.h"
 #include "Memory.h"
 #include "Cartridge.h"
+#include <cstring>
 
 class Emulator {
 private:
@@ -11,5 +12,5 @@ private:
 	CPU cpu;
 public:
 	Emulator();
-	void run();
+	void run(std::string romName);
 };
