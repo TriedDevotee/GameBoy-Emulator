@@ -11,7 +11,10 @@ I chose C++ for its performance, control over memory management, and suitability
 ## Current Progress
 
 <img width="790" height="718" alt="image" src="https://github.com/user-attachments/assets/3994c012-8eb0-43bd-b751-c6790abf43eb" /><br/>
-Note: this is the CPU passing every Blargg instruction test
+Note: this is the CPU passing every Blargg instruction test <br/>
+
+<img width="795" height="745" alt="image" src="https://github.com/user-attachments/assets/92c84728-eb70-4f48-8f83-366e719bdb40" /><br/>
+Note: this is the emulator running Super Mario Land
 
 ### CPU
 
@@ -35,25 +38,27 @@ The PPU currently allows for full VRAM reading and rendering, with the complete 
 
 The code currently boots most industry grade cartridges to the display!
 
+Additionally, the emulator passes every Blargg test, showing completeness of the CPU.
+
 In terms of next steps, I will be rewriting the python assembler to an actual C++ assembler, in order to assemble custom assembly programs to the emulator, and run them. 
 
-I will also be running Blargg's test ROMs, hoping for a pass, to verify the quality of the CPU code.
 
 ## Roadmap
 
-Next I am going to add a proper cycle count<br>
-And I am gonna give it a super cool PPU <br>
-Then it'll run Tetris
+- Rewrite the assembler into C++, with assembly support (parsing from assembly syntax)
+- Run the Mooneye Test suite, to test for edge cases in the emulator
+- Set up a release version for easy installation 
 
 ## Project Philosophy
 
 I'm prioritising understanding and implementing the underlying hardware over simply getting games to run as quickly as possible. I want to understand how each component works and how the components interact to produce a functioning system.
 
-Eventually, I'd like to get the emulator running Tetris. Then I can worry about making everything look pretty.
+From the very start, my goal was to be able to run games, and commercial ROMs. Now this is viable, I am concentrated on making this a technically complete project
 
 ## References
 
 I used a lot of GPT-6 as a means of debugging my stack traces, due to me not wanting to do it <br>
+Additionally, I made use of Claude Sonnet 5.5 to find one stupid bug that was breaking background scrolling on the stupid STAT register, and it got to 2 AM and I gave up and then the AI found it in like 15 seconds - that was a humanising experience <br>
 I also used the site https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html as a means of working out what needed implementing, and where
 
 ## Building
